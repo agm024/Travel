@@ -22,4 +22,5 @@ tmp
 *.ntvs*
 *.njsproj
 *.sln
+.env
 *.sw?

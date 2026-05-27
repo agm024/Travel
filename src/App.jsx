@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import {
   Link,
   NavLink,
@@ -9,9 +9,10 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom'
-import { siteContent } from './data/content'
+import { fetchTravelContent } from './lib/sanity'
 
 const shellClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
+const SiteContentContext = createContext(null)
 
 const buildPackagesPath = (destination, month) => {
   const params = new URLSearchParams()
@@ -29,6 +30,53 @@ const buildPackagesPath = (destination, month) => {
 }
 
 function App() {
+  const [siteContent, setSiteContent] = useState(null)
+  const [status, setStatus] = useState('loading')
+
+  useEffect(() => {
+    let active = true
+
+    fetchTravelContent()
+      .then((nextContent) => {
+        if (!active) {
+          return
+        }
+
+        setSiteContent(nextContent)
+        setStatus('ready')
+      })
+      .catch((error) => {
+        if (!active) {
+          return
+        }
+
+        console.error('Failed to load Sanity content', error)
+        setStatus('error')
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (status === 'loading') {
+    return <LoadingScreen />
+  }
+
+  if (status === 'error' || !siteContent) {
+    return <ErrorScreen />
+  }
+
+  return (
+    <SiteContentContext.Provider value={siteContent}>
+      <AppShell />
+    </SiteContentContext.Provider>
+  )
+}
+
+function AppShell() {
+  const siteContent = useSiteContent()
+
   return (
     <div className="relative min-h-screen overflow-hidden text-slate-900">
       <div
@@ -63,6 +111,39 @@ function App() {
   )
 }
 
+function useSiteContent() {
+  const context = useContext(SiteContentContext)
+
+  if (!context) {
+    throw new Error('useSiteContent must be used within SiteContentContext')
+  }
+
+  return context
+}
+
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4 text-slate-800">
+      <div className="rounded-[2rem] border border-white/70 bg-white/80 px-8 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        Loading Sanity content...
+      </div>
+    </div>
+  )
+}
+
+function ErrorScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4 text-slate-800">
+      <div className="max-w-xl rounded-[2rem] border border-rose-200 bg-white/90 px-8 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <h1 className="text-2xl font-semibold text-slate-950">Sanity content could not load</h1>
+        <p className="mt-3 leading-7 text-slate-600">
+          Check that your Sanity environment variables are set in a <code>.env</code> file and that the project has published documents.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function ScrollManager() {
   const location = useLocation()
 
@@ -83,6 +164,7 @@ function ScrollManager() {
 }
 
 function Header() {
+  const siteContent = useSiteContent()
   const navClass = ({ isActive }) =>
     [
       'rounded-full px-4 py-2 text-sm font-medium transition',
@@ -128,9 +210,15 @@ function Header() {
 }
 
 function HomePage() {
+  const siteContent = useSiteContent()
   const navigate = useNavigate()
-  const [destination, setDestination] = useState(siteContent.destinations[0])
-  const [month, setMonth] = useState(siteContent.months[0])
+  const [destination, setDestination] = useState('')
+  const [month, setMonth] = useState('')
+
+  useEffect(() => {
+    setDestination(siteContent.destinations[0] ?? '')
+    setMonth(siteContent.months[0] ?? '')
+  }, [siteContent.destinations, siteContent.months])
 
   const handleSearch = (event) => {
     event.preventDefault()
@@ -142,15 +230,14 @@ function HomePage() {
       <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div className="space-y-6">
           <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700">
-            Bright luxury travel, made elegantly simple
+            {siteContent.heroTagline}
           </span>
           <div className="space-y-4">
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              Discover minimal, polished journeys built for effortless travel days.
+              {siteContent.heroHeadline}
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-slate-600">
-              Plan premium holidays with clear choices, smooth booking support, and vibrant stays
-              across the world&apos;s most inspiring destinations.
+            <p className="max-w-2xl text-lg leading-8 text-slate-700">
+              {siteContent.heroDescription}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -173,7 +260,7 @@ function HomePage() {
                 key={stat.label}
                 className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
               >
-                <dt className="text-sm text-slate-500">{stat.label}</dt>
+                <dt className="text-sm text-slate-600">{stat.label}</dt>
                 <dd className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
                   {stat.value}
                 </dd>
@@ -191,8 +278,8 @@ function HomePage() {
               className="h-[24rem] w-full rounded-[1.6rem] object-cover"
             />
             <div className="absolute inset-x-9 bottom-9 rounded-[1.6rem] border border-white/60 bg-white/65 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.1)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-cyan-700">Concierge-led planning</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-cyan-800">Concierge-led planning</p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">
                 Flexible itineraries, handpicked stays, and end-to-end support in one place.
               </p>
             </div>
@@ -206,19 +293,19 @@ function HomePage() {
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">
               Glassmorphism search
             </p>
             <div>
               <h2 id="search-title" className="text-3xl font-semibold tracking-tight text-slate-950">
                 Search your next holiday
               </h2>
-              <p className="mt-2 text-slate-600">
+              <p className="mt-2 text-slate-700">
                 Pick a destination and season to see the trips that match your pace.
               </p>
             </div>
           </div>
-          <p className="max-w-md text-sm leading-6 text-slate-500">
+          <p className="max-w-md text-sm leading-6 text-slate-600">
             Clear inputs, bright contrast, and keyboard-friendly controls keep the experience smooth
             and accessible.
           </p>
@@ -250,14 +337,14 @@ function HomePage() {
       <section id="about" className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-600">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">
               About us
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
               A travel partner focused on elegant planning and calm execution.
             </h2>
           </div>
-          <p className="max-w-xl text-slate-600">{siteContent.about.description}</p>
+          <p className="max-w-xl text-slate-700">{siteContent.about.description}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {siteContent.about.points.map((point) => (
@@ -268,8 +355,8 @@ function HomePage() {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-lg text-white">
                 {point.icon}
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-slate-900">{point.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{point.description}</p>
+              <h3 className="mt-5 text-xl font-semibold text-slate-950">{point.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-700">{point.description}</p>
             </article>
           ))}
         </div>
@@ -285,7 +372,7 @@ function HomePage() {
               Trending packages with bright, refined stays
             </h2>
           </div>
-          <Link to="/packages" className="text-sm font-semibold text-slate-700 transition hover:text-cyan-700">
+          <Link to="/packages" className="text-sm font-semibold text-slate-800 transition hover:text-cyan-800">
             View all packages →
           </Link>
         </div>
@@ -298,7 +385,7 @@ function HomePage() {
 
       <section id="reviews" className="space-y-6">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">
             Guest reviews
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
@@ -311,11 +398,11 @@ function HomePage() {
               key={review.name}
               className="rounded-[2rem] border border-white/70 bg-white/78 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
             >
-              <p className="text-sm font-semibold text-amber-500">{'★'.repeat(review.rating)}</p>
-              <p className="mt-4 text-sm leading-7 text-slate-600">&ldquo;{review.quote}&rdquo;</p>
+              <p className="text-sm font-semibold text-amber-600">{'★'.repeat(review.rating)}</p>
+              <p className="mt-4 text-sm leading-7 text-slate-700">&ldquo;{review.quote}&rdquo;</p>
               <div className="mt-6">
-                <p className="font-semibold text-slate-900">{review.name}</p>
-                <p className="text-sm text-slate-500">{review.trip}</p>
+                <p className="font-semibold text-slate-950">{review.name}</p>
+                <p className="text-sm text-slate-600">{review.trip}</p>
               </div>
             </article>
           ))}
@@ -325,7 +412,7 @@ function HomePage() {
       <section className="rounded-[2rem] border border-slate-200 bg-slate-900 px-6 py-8 text-white shadow-[0_22px_65px_rgba(15,23,42,0.18)] sm:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">
               Smooth support
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight">
@@ -359,6 +446,7 @@ function HomePage() {
 }
 
 function PackagesPage() {
+  const siteContent = useSiteContent()
   const [searchParams, setSearchParams] = useSearchParams()
   const destination = searchParams.get('destination') ?? ''
   const month = searchParams.get('month') ?? ''
@@ -384,11 +472,11 @@ function PackagesPage() {
     <div className={`${shellClass} space-y-8`}>
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">
             Curated collection
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">All travel packages</h1>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 text-slate-700">
             Browse every destination with simple filters and quick detail access.
           </p>
         </div>
@@ -459,6 +547,7 @@ function PackagesPage() {
 }
 
 function PackageDetailsPage() {
+  const siteContent = useSiteContent()
   const { slug } = useParams()
   const travelPackage = siteContent.packages.find((item) => item.slug === slug)
 
@@ -523,7 +612,7 @@ function PackageDetailsPage() {
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">Itinerary</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Itinerary</p>
             <ol className="mt-4 grid gap-3">
               {travelPackage.itinerary.map((stop, index) => (
                 <li key={stop} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
@@ -537,7 +626,7 @@ function PackageDetailsPage() {
 
         <aside className="space-y-6 rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">
               Inquire &amp; book
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
@@ -556,15 +645,17 @@ function PackageDetailsPage() {
 }
 
 function ContactPage() {
+  const siteContent = useSiteContent()
+
   return (
     <div className={`${shellClass} grid gap-6 lg:grid-cols-[0.95fr_1.05fr]`}>
       <section className="space-y-6 rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">Contact us</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Contact us</p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
             Let&apos;s build your next escape together
           </h1>
-          <p className="mt-3 text-slate-600">{siteContent.contact.intro}</p>
+          <p className="mt-3 text-slate-700">{siteContent.contact.intro}</p>
         </div>
         <div className="grid gap-4">
           <ContactCard label="Phone" value={siteContent.contact.phone} href={`tel:${siteContent.contact.phone}`} />
@@ -573,8 +664,8 @@ function ContactPage() {
           <ContactCard label="Hours" value={siteContent.contact.hours} />
         </div>
         <div className="rounded-[1.75rem] bg-slate-900 p-6 text-white">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">Why travelers choose us</p>
-          <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">Why travelers choose us</p>
+          <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-200">
             {siteContent.contact.promises.map((promise) => (
               <li key={promise}>• {promise}</li>
             ))}
@@ -584,7 +675,7 @@ function ContactPage() {
 
       <section className="rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
         <div className="mb-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-600">Plan with us</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">Plan with us</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
             Share your idea and we&apos;ll map the next step
           </h2>
@@ -739,22 +830,24 @@ function FormField({ defaultValue, id, label, name, type, ...rest }) {
 
 function ContactCard({ href, label, value }) {
   const content = href ? (
-    <a href={href} className="mt-2 block text-base font-semibold text-slate-900 transition hover:text-cyan-700">
+    <a href={href} className="mt-2 block text-base font-semibold text-slate-950 transition hover:text-cyan-800">
       {value}
     </a>
   ) : (
-    <p className="mt-2 text-base font-semibold text-slate-900">{value}</p>
+    <p className="mt-2 text-base font-semibold text-slate-950">{value}</p>
   )
 
   return (
     <article className="rounded-[1.75rem] bg-slate-50 p-5">
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm text-slate-600">{label}</p>
       {content}
     </article>
   )
 }
 
 function Footer() {
+  const siteContent = useSiteContent()
+
   return (
     <footer className="border-t border-white/60 bg-white/50 backdrop-blur-xl">
       <div className={`${shellClass} flex flex-col gap-5 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between`}>
