@@ -5,6 +5,7 @@ import {siteContent as fallbackSiteContent} from '../data/content'
 const projectId = import.meta.env.VITE_SANITY_PROJECT_ID
 const dataset = import.meta.env.VITE_SANITY_DATASET ?? 'production'
 const apiVersion = import.meta.env.VITE_SANITY_API_VERSION ?? '2025-01-01'
+const isDevelopment = import.meta.env.DEV
 
 const hasSanityConfig = Boolean(projectId)
 
@@ -150,17 +151,10 @@ export async function fetchTravelContent() {
     return fallbackSiteContent
   }
 
-  const query = new URLSearchParams({query: travelContentQuery, returnQuery: 'false'})
-  const response = await fetch(
-    `${sanityProxyBase}/v${apiVersion}/data/query/${dataset}?${query.toString()}`,
-  )
+  const data = isDevelopment
+    ? await fetchDevSanityData()
+    : await client.fetch(travelContentQuery)
 
-  if (!response.ok) {
-    throw new Error(`Sanity query failed with status ${response.status}`)
-  }
-
-  const payload = await response.json()
-  const data = payload?.result ?? {}
   const siteSettings = data?.siteSettings ?? {}
   const packages = mapPackages(data?.packages)
   const packageOptions = deriveOptionsFromPackages(packages)
@@ -187,4 +181,18 @@ export async function fetchTravelContent() {
     contact: mapContact(data?.contact),
     packages,
   }
+}
+
+async function fetchDevSanityData() {
+  const query = new URLSearchParams({query: travelContentQuery, returnQuery: 'false'})
+  const response = await fetch(
+    `${sanityProxyBase}/v${apiVersion}/data/query/${dataset}?${query.toString()}`,
+  )
+
+  if (!response.ok) {
+    throw new Error(`Sanity query failed with status ${response.status}`)
+  }
+
+  const payload = await response.json()
+  return payload?.result ?? {}
 }
