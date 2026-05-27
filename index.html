@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Luxe | Discover Premium Journeys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/main.css" />
+  </head>
+  <body>
+    <header class="site-header glass">
+      <a class="logo" href="/index.html">Travel Luxe</a>
+      <nav>
+        <a href="/packages.html">Packages</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero section-fade">
+        <p class="eyebrow">Modern Travel Experiences</p>
+        <h1>Curated escapes with seamless planning.</h1>
+        <p>
+          Explore hand-picked premium destinations, month-wise availability, and unforgettable itineraries.
+        </p>
+      </section>
+
+      <section class="search-card section-fade" aria-labelledby="search-title">
+        <h2 id="search-title">Search Your Next Holiday</h2>
+        <form id="explore-form" class="search-grid">
+          <label>
+            Destination Country
+            <select id="destination" name="destination" required></select>
+          </label>
+          <label>
+            Travel Month
+            <select id="month" name="month" required></select>
+          </label>
+          <button type="submit" class="btn-primary">Explore</button>
+        </form>
+      </section>
+
+      <section class="trending section-fade" aria-labelledby="trending-title">
+        <div class="section-head">
+          <h2 id="trending-title">Trending Packages</h2>
+          <a href="/packages.html">View all</a>
+        </div>
+        <div id="trending-list" class="card-grid"></div>
+      </section>
+    </main>
+
+    <a
+      class="whatsapp-float"
+      href="https://wa.me/919999999999?text=Hi%2C%20I%27d%20like%20to%20plan%20a%20trip."
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Chat on WhatsApp"
+      >💬</a
+    >
+
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>
