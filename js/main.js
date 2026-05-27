@@ -2,6 +2,9 @@ import { getPackageBySlug, getSiteContent } from "/js/content-service.js";
 
 const page = window.location.pathname.split("/").pop() || "index.html";
 const params = new URLSearchParams(window.location.search);
+const NO_PACKAGE_FOUND_HTML =
+  '<div class="panel"><h2>No package found</h2><p>Try another destination or month combination.</p></div>';
+const removeControlCharacters = (value) => String(value).replaceAll(/[\u0000-\u001f\u007f]/g, "").trim();
 
 const escapeHTML = (value) =>
   String(value)
@@ -63,6 +66,8 @@ const renderPackages = async () => {
   const destination = params.get("destination");
   const month = params.get("month");
   const activeFilters = document.querySelector("#active-filters");
+  const safeDestination = destination ? escapeHTML(destination) : "";
+  const safeMonth = month ? escapeHTML(month) : "";
 
   const filtered = content.packages.filter((pkg) => {
     const destinationMatch = !destination || pkg.country === destination;
@@ -70,15 +75,13 @@ const renderPackages = async () => {
     return destinationMatch && monthMatch;
   });
 
-  activeFilters.innerHTML = [destination && `Destination: ${destination}`, month && `Month: ${month}`]
+  activeFilters.innerHTML = [safeDestination && `Destination: ${safeDestination}`, safeMonth && `Month: ${safeMonth}`]
     .filter(Boolean)
-    .map((item) => `<span class="chip">${escapeHTML(item)}</span>`)
+    .map((item) => `<span class="chip">${item}</span>`)
     .join("") || '<span class="chip">Showing all packages</span>';
 
   const list = document.querySelector("#packages-list");
-  list.innerHTML = filtered.length
-    ? filtered.map(packageCardTemplate).join("")
-    : '<div class="panel"><h2>No package found</h2><p>Try another destination or month combination.</p></div>';
+  list.innerHTML = filtered.length ? filtered.map(packageCardTemplate).join("") : NO_PACKAGE_FOUND_HTML;
 };
 
 const renderPackageDetails = async () => {
@@ -125,7 +128,7 @@ const renderPackageDetails = async () => {
             </label>
             <label>
               Message
-              <textarea name="message" rows="4" required>I'm interested in ${escapeHTML(packageData.title)}.</textarea>
+              <textarea name="message" rows="4" required></textarea>
             </label>
             <button type="submit" class="btn-primary">Submit Inquiry</button>
           </form>
@@ -133,6 +136,11 @@ const renderPackageDetails = async () => {
       </div>
     </section>
   `;
+
+  const messageInput = root.querySelector('textarea[name="message"]');
+  if (messageInput) {
+    messageInput.value = "I'm interested in " + removeControlCharacters(packageData.title) + ".";
+  }
 
   bindInquiryForms();
 };

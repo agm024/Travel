@@ -4,7 +4,12 @@ export default {
   type: "document",
   fields: [
     { name: "title", type: "string" },
-    { name: "slug", type: "slug", options: { source: "title", maxLength: 96 } },
+    {
+      name: "slug",
+      type: "slug",
+      description: "URL slug used for package details routing (e.g. tokyo-sakura).",
+      options: { source: "title", maxLength: 96 },
+    },
     { name: "country", type: "string" },
     { name: "month", type: "string" },
     { name: "duration", type: "string" },

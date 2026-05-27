@@ -1,8 +1,8 @@
 import { cmsContent } from "/js/content.js";
 
-const delay = (data) => Promise.resolve(data);
+const asPromise = (data) => Promise.resolve(data);
 
-export const getSiteContent = () => delay(cmsContent);
+export const getSiteContent = () => asPromise(cmsContent);
 
 export const getPackageBySlug = async (slug) => {
   const content = await getSiteContent();

@@ -279,6 +279,11 @@ ul {
   transform: scale(1.07);
 }
 
+.whatsapp-float:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
 .section-fade {
   animation: fadeUp 0.7s ease;
 }
