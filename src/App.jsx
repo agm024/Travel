@@ -637,7 +637,12 @@ function PackageDetailsPage() {
               trip around it.
             </p>
           </div>
-          <InquiryForm defaultMessage={`I’m interested in the ${travelPackage.title} package.`} buttonText="Submit inquiry" />
+          <InquiryForm
+            defaultMessage={`I’m interested in the ${travelPackage.title} package.`}
+            buttonText="Submit inquiry"
+            travelPackageTitle={travelPackage.title}
+            sourcePage={`/packages/${travelPackage.slug}`}
+          />
         </aside>
       </section>
     </div>
@@ -680,7 +685,7 @@ function ContactPage() {
             Share your idea and we&apos;ll map the next step
           </h2>
         </div>
-        <InquiryForm buttonText="Send inquiry" />
+        <InquiryForm buttonText="Send inquiry" sourcePage="/contact" />
       </section>
     </div>
   )
@@ -755,23 +760,63 @@ function FilterChip({ label }) {
   )
 }
 
-function InquiryForm({ buttonText, defaultMessage = '' }) {
+function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '', sourcePage = '' }) {
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setSubmitted(true)
-    const form = event.currentTarget
-    form.reset()
+    setIsSubmitting(true)
+    setSubmitError('')
 
-    const messageField = form.elements.namedItem('message')
-    if (messageField instanceof HTMLTextAreaElement) {
-      messageField.value = defaultMessage
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const payload = {
+      name: String(formData.get('name') ?? '').trim(),
+      email: String(formData.get('email') ?? '').trim(),
+      phone: String(formData.get('phone') ?? '').trim(),
+      message: String(formData.get('message') ?? '').trim(),
+      travelPackage: travelPackageTitle,
+      sourcePage,
+    }
+
+    try {
+      const response = await fetch('/.netlify/functions/contact-submission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error('Submission failed')
+      }
+
+      setSubmitted(true)
+      form.reset()
+
+      const messageField = form.elements.namedItem('message')
+      if (messageField instanceof HTMLTextAreaElement) {
+        messageField.value = defaultMessage
+      }
+    } catch (error) {
+      setSubmitError('We could not submit the form right now. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit} onInput={() => setSubmitted(false)}>
+    <form
+      className="space-y-4"
+      onSubmit={handleSubmit}
+      onInput={() => {
+        setSubmitted(false)
+        setSubmitError('')
+      }}
+    >
       <FormField id="name" label="Name" type="text" autoComplete="name" required />
       <FormField id="email" label="Email" type="email" autoComplete="email" required />
       <FormField id="phone" label="Phone" type="tel" autoComplete="tel" required />
@@ -785,15 +830,30 @@ function InquiryForm({ buttonText, defaultMessage = '' }) {
       />
       <button
         type="submit"
-        className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-fuchsia-500 px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-cyan-300/35 transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500"
+        disabled={isSubmitting}
+        className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-fuchsia-500 px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-cyan-300/35 transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {buttonText}
+        {isSubmitting ? 'Submitting…' : buttonText}
       </button>
-      <p className={`text-sm ${submitted ? 'text-emerald-600' : 'text-slate-500'}`}>
-        {submitted
-          ? 'Thanks! A Travel Luxe advisor will reach out shortly.'
-          : 'We usually respond within one business day.'}
-      </p>
+      {submitted ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+              ✓
+            </span>
+            <div>
+              <p className="font-semibold">Form submitted</p>
+              <p className="mt-1 text-sm leading-6 text-emerald-800">
+                Our team will contact you in 24 hrs.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : submitError ? (
+        <p className="text-sm text-rose-600">{submitError}</p>
+      ) : (
+        <p className="text-sm text-slate-500">We usually respond within one business day.</p>
+      )}
     </form>
   )
 }
