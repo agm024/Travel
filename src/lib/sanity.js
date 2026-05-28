@@ -28,6 +28,9 @@ const travelContentQuery = `{
     heroHeadline,
     heroDescription,
     heroImage,
+    heroVideo{
+      asset->{url}
+    },
     aboutDescription,
     destinations,
     months,
@@ -43,6 +46,7 @@ const travelContentQuery = `{
     price,
     description,
     image,
+    gallery,
     highlights,
     itinerary
   },
@@ -113,10 +117,20 @@ const mapPackages = (packages) => {
       price: travelPackage?.price?.trim(),
       description: travelPackage?.description?.trim(),
       image: imageUrlFor(travelPackage?.image),
+      gallery: cleanStrings((travelPackage?.gallery ?? []).map((entry) => imageUrlFor(entry))),
       highlights: cleanStrings(travelPackage?.highlights),
       itinerary: cleanStrings(travelPackage?.itinerary),
     }))
     .filter((travelPackage) => travelPackage.slug && travelPackage.title)
+    .map((travelPackage) => ({
+      ...travelPackage,
+      gallery:
+        travelPackage.gallery.length > 0
+          ? travelPackage.gallery
+          : travelPackage.image
+            ? [travelPackage.image]
+            : [],
+    }))
 
   return mapped.length ? mapped : fallbackSiteContent.packages
 }
@@ -162,6 +176,7 @@ export async function fetchTravelContent() {
   return {
     brand: siteSettings.brand?.trim() || fallbackSiteContent.brand,
     heroImage: imageUrlFor(siteSettings.heroImage) || fallbackSiteContent.heroImage,
+    heroVideo: siteSettings.heroVideo?.asset?.url?.trim() || fallbackSiteContent.heroVideo || '',
     heroTagline: siteSettings.heroTagline?.trim() || 'Bright luxury travel, made elegantly simple',
     heroHeadline:
       siteSettings.heroHeadline?.trim() ||

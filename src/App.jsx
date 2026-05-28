@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import {
   Link,
   NavLink,
@@ -92,6 +92,7 @@ function AppShell() {
       <main className="pb-24 pt-10 sm:pt-14">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/upcoming-tours" element={<UpcomingToursPage />} />
           <Route path="/packages" element={<PackagesPage />} />
           <Route path="/packages/:slug" element={<PackageDetailsPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -121,11 +122,36 @@ function useSiteContent() {
   return context
 }
 
+function SeoMeta({ title, description }) {
+  useEffect(() => {
+    document.title = title
+
+    const ensureMeta = (name, attribute = 'name') => {
+      let tag = document.head.querySelector(`meta[${attribute}="${name}"]`)
+      if (!tag) {
+        tag = document.createElement('meta')
+        tag.setAttribute(attribute, name)
+        document.head.appendChild(tag)
+      }
+      return tag
+    }
+
+    ensureMeta('description').setAttribute('content', description)
+    ensureMeta('og:title', 'property').setAttribute('content', title)
+    ensureMeta('og:description', 'property').setAttribute('content', description)
+  }, [description, title])
+
+  return null
+}
+
 function LoadingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 text-slate-800">
-      <div className="rounded-[2rem] border border-white/70 bg-white/80 px-8 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-        Loading Sanity content...
+      <div className="w-full max-w-3xl space-y-4 rounded-[2rem] border border-white/70 bg-white/80 px-8 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <p className="font-semibold">Loading Your Website</p>
+        <div className="h-3 w-full animate-pulse rounded-full bg-slate-200" />
+        <div className="h-3 w-4/5 animate-pulse rounded-full bg-slate-200" />
+        <div className="h-44 w-full animate-pulse rounded-[1.5rem] bg-slate-200" />
       </div>
     </div>
   )
@@ -196,6 +222,9 @@ function Header() {
             <NavLink to="/packages" className={navClass}>
               Packages
             </NavLink>
+            <NavLink to="/upcoming-tours" className={navClass}>
+              Upcoming tours
+            </NavLink>
             <Link to="/#reviews" className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900">
               Reviews
             </Link>
@@ -214,74 +243,65 @@ function HomePage() {
   const navigate = useNavigate()
   const [destination, setDestination] = useState('')
   const [month, setMonth] = useState('')
+  const popularDestinations = useMemo(
+    () =>
+      Array.from(new Map(siteContent.packages.map((travelPackage) => [travelPackage.country, travelPackage])).values()).slice(0, 8),
+    [siteContent.packages],
+  )
 
-  useEffect(() => {
-    setDestination(siteContent.destinations[0] ?? '')
-    setMonth(siteContent.months[0] ?? '')
-  }, [siteContent.destinations, siteContent.months])
+  const destinationValue = destination || siteContent.destinations[0] || ''
+  const monthValue = month || siteContent.months[0] || ''
 
   const handleSearch = (event) => {
     event.preventDefault()
-    navigate(buildPackagesPath(destination, month))
+    navigate(buildPackagesPath(destinationValue, monthValue))
   }
 
   return (
     <div className={`${shellClass} space-y-10`}>
-      <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="space-y-6">
-          <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700">
-            {siteContent.heroTagline}
-          </span>
-          <div className="space-y-4">
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              {siteContent.heroHeadline}
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-slate-700">
-              {siteContent.heroDescription}
+      <SeoMeta
+        title="Fly With Ranjita | Premium Travel Tours"
+        description="Discover upcoming tours, curated packages, and premium destination planning with Fly With Ranjita."
+      />
+
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden border-y border-white/30 bg-slate-950">
+        {siteContent.heroVideo ? (
+          <video
+            className="h-[27rem] w-full object-cover sm:h-[34rem] lg:h-[38rem]"
+            src={siteContent.heroVideo}
+            poster={siteContent.heroImage}
+            aria-label="Hero background video showing travel destinations"
+            title="Hero travel video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        ) : (
+          <img src={siteContent.heroImage} alt="Travel highlights" className="h-[27rem] w-full object-cover sm:h-[34rem] lg:h-[38rem]" loading="eager" fetchPriority="high" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/55 to-slate-900/15" />
+        <div className={`${shellClass} absolute inset-0 flex items-center`}>
+          <div className="max-w-3xl space-y-5 text-white">
+            <p className="inline-flex rounded-full border border-white/30 bg-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] backdrop-blur-xl">
+              {siteContent.heroTagline}
             </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to="/packages"
-              className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5"
-            >
-              Browse packages
-            </Link>
-            <Link
-              to="/contact"
-              className="rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
-            >
-              Talk to an advisor
-            </Link>
-          </div>
-          <dl className="grid gap-4 sm:grid-cols-3">
-            {siteContent.stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">Fly With Ranjita</h1>
+            <p className="text-base leading-7 text-slate-100 sm:text-lg">{siteContent.heroDescription}</p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/upcoming-tours"
+                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg transition hover:-translate-y-0.5"
               >
-                <dt className="text-sm text-slate-600">{stat.label}</dt>
-                <dd className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="relative">
-          <div className="absolute -left-6 top-12 h-24 w-24 rounded-full bg-fuchsia-200/70 blur-2xl" />
-          <div className="absolute -right-8 bottom-16 h-28 w-28 rounded-full bg-cyan-200/80 blur-2xl" />
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/75 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.1)] backdrop-blur-xl">
-            <img
-              src={siteContent.heroImage}
-              alt="Elegant tropical waterfront resort"
-              className="h-[24rem] w-full rounded-[1.6rem] object-cover"
-            />
-            <div className="absolute inset-x-9 bottom-9 rounded-[1.6rem] border border-white/60 bg-white/65 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.1)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-cyan-800">Concierge-led planning</p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">
-                Flexible itineraries, handpicked stays, and end-to-end support in one place.
-              </p>
+                Upcoming Tours
+              </Link>
+              <Link
+                to="/packages"
+                className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20"
+              >
+                Explore Packages
+              </Link>
             </div>
           </div>
         </div>
@@ -289,12 +309,12 @@ function HomePage() {
 
       <section
         aria-labelledby="search-title"
-        className="rounded-[2rem] border border-white/70 bg-white/55 p-6 shadow-[0_25px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl sm:p-8"
+        className="rounded-[2rem] border border-white/70 bg-white/45 p-6 shadow-[0_25px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl sm:p-8"
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">
-              Glassmorphism search
+              Smart search
             </p>
             <div>
               <h2 id="search-title" className="text-3xl font-semibold tracking-tight text-slate-950">
@@ -306,22 +326,21 @@ function HomePage() {
             </div>
           </div>
           <p className="max-w-md text-sm leading-6 text-slate-600">
-            Clear inputs, bright contrast, and keyboard-friendly controls keep the experience smooth
-            and accessible.
+             Filter by destination and month for upcoming tours.
           </p>
         </div>
         <form className="mt-8 grid gap-4 lg:grid-cols-[1fr_1fr_auto]" onSubmit={handleSearch}>
           <SelectField
             id="destination"
             label="Destination"
-            value={destination}
+            value={destinationValue}
             options={siteContent.destinations}
             onChange={setDestination}
           />
           <SelectField
             id="month"
             label="Travel month"
-            value={month}
+            value={monthValue}
             options={siteContent.months}
             onChange={setMonth}
           />
@@ -333,6 +352,8 @@ function HomePage() {
           </button>
         </form>
       </section>
+
+      <PopularDestinationsCarousel destinations={popularDestinations} />
 
       <section id="about" className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -445,6 +466,106 @@ function HomePage() {
   )
 }
 
+function PopularDestinationsCarousel({ destinations }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    if (!destinations.length) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((previous) => (previous + 1) % destinations.length)
+    }, 4200)
+
+    return () => window.clearInterval(timer)
+  }, [destinations.length])
+
+  if (!destinations.length) {
+    return null
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Popular destinations</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Trending places people are booking now</h2>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveIndex((activeIndex - 1 + destinations.length) % destinations.length)}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            aria-label="Previous destination"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveIndex((activeIndex + 1) % destinations.length)}
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            aria-label="Next destination"
+          >
+            →
+          </button>
+        </div>
+      </div>
+      <article className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <div className="grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
+          <img
+            src={destinations[activeIndex].image}
+            alt={`${destinations[activeIndex].title} in ${destinations[activeIndex].country}`}
+            className="h-72 w-full object-cover md:h-full"
+            loading="lazy"
+          />
+          <div className="space-y-3 p-6 sm:p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-700">
+              {destinations[activeIndex].country}
+            </p>
+            <h3 className="text-3xl font-semibold tracking-tight text-slate-950">{destinations[activeIndex].title}</h3>
+            <p className="text-sm leading-7 text-slate-600">{destinations[activeIndex].description}</p>
+            <p className="text-sm text-slate-500">
+              Best month: {destinations[activeIndex].month} · {destinations[activeIndex].duration}
+            </p>
+            <Link
+              to={`/packages/${destinations[activeIndex].slug}`}
+              className="inline-flex rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+            >
+              View destination
+            </Link>
+          </div>
+        </div>
+      </article>
+    </section>
+  )
+}
+
+function UpcomingToursPage() {
+  const siteContent = useSiteContent()
+
+  return (
+    <div className={`${shellClass} space-y-8`}>
+      <SeoMeta
+        title="Upcoming Tours | Fly With Ranjita"
+        description="Browse all upcoming tours and seasonal packages from Fly With Ranjita."
+      />
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Upcoming Tours</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">Plan your next departure</h1>
+        <p className="mt-3 max-w-2xl text-slate-700">
+          Explore all upcoming tours and package options in one place, then open each package for full details.
+        </p>
+      </section>
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {siteContent.packages.map((travelPackage) => (
+          <PackageCard key={travelPackage.slug} travelPackage={travelPackage} />
+        ))}
+      </section>
+    </div>
+  )
+}
+
 function PackagesPage() {
   const siteContent = useSiteContent()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -470,6 +591,10 @@ function PackagesPage() {
 
   return (
     <div className={`${shellClass} space-y-8`}>
+      <SeoMeta
+        title="Tour Packages | Fly With Ranjita"
+        description="Filter premium tour packages by destination and month and find your ideal trip."
+      />
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">
@@ -550,6 +675,10 @@ function PackageDetailsPage() {
   const siteContent = useSiteContent()
   const { slug } = useParams()
   const travelPackage = siteContent.packages.find((item) => item.slug === slug)
+  const [activeTab, setActiveTab] = useState('overview')
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
+  const gallery = travelPackage?.gallery ?? []
+  const currentGalleryIndex = gallery.length ? activeGalleryIndex % gallery.length : 0
 
   if (!travelPackage) {
     return (
@@ -570,12 +699,17 @@ function PackageDetailsPage() {
 
   return (
     <div className={`${shellClass} space-y-8`}>
+      <SeoMeta
+        title={`${travelPackage.title} | Fly With Ranjita`}
+        description={`Explore itinerary, pricing, and gallery for ${travelPackage.title} in ${travelPackage.country}.`}
+      />
       <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <img
             src={travelPackage.image}
             alt={travelPackage.title}
             className="h-full min-h-[20rem] w-full object-cover"
+            loading="eager"
           />
           <div className="space-y-5 p-8">
             <span className="inline-flex rounded-full bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700">
@@ -599,29 +733,109 @@ function PackageDetailsPage() {
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <article className="space-y-6 rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-600">
-              Highlights
-            </p>
-            <ul className="mt-4 grid gap-3 text-sm leading-7 text-slate-600">
-              {travelPackage.highlights.map((highlight) => (
-                <li key={highlight} className="rounded-2xl bg-slate-50 px-4 py-3">
-                  {highlight}
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-wrap gap-3">
+            {['overview', 'costing'].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`rounded-full px-5 py-2 text-sm font-semibold capitalize transition ${
+                  activeTab === tab
+                    ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/15'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Itinerary</p>
-            <ol className="mt-4 grid gap-3">
-              {travelPackage.itinerary.map((stop, index) => (
-                <li key={stop} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
-                  <span className="mr-2 font-semibold text-slate-900">Day {index + 1}</span>
-                  {stop}
-                </li>
-              ))}
-            </ol>
-          </div>
+          {activeTab === 'overview' ? (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-600">Highlights</p>
+                <ul className="mt-4 grid gap-3 text-sm leading-7 text-slate-600">
+                  {travelPackage.highlights.map((highlight) => (
+                    <li key={highlight} className="rounded-2xl bg-slate-50 px-4 py-3">
+                      {highlight}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Itinerary</p>
+                <ol className="mt-4 grid gap-3">
+                  {travelPackage.itinerary.map((stop, index) => (
+                    <li key={stop} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-600">
+                      <span className="mr-2 font-semibold text-slate-900">Day {index + 1}</span>
+                      {stop}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 rounded-3xl bg-slate-50 p-6">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Costing</h2>
+              <p className="text-sm leading-7 text-slate-600">
+                Starting from <strong className="text-slate-900">{travelPackage.price}</strong>. Final costing depends on departure date, room occupancy, and optional activities.
+              </p>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>• Curated stays and core transfers are included in base pricing.</li>
+                <li>• Taxes/fees and add-on experiences are shared in the final proposal.</li>
+                <li>• Group departures can be customized with special rates on request.</li>
+              </ul>
+            </div>
+          )}
+          {gallery.length ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Gallery</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveGalleryIndex((currentGalleryIndex - 1 + gallery.length) % gallery.length)
+                    }
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700"
+                    aria-label="Previous image"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveGalleryIndex((currentGalleryIndex + 1) % gallery.length)}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700"
+                    aria-label="Next image"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+              <img
+                src={gallery[currentGalleryIndex]}
+                alt={`${travelPackage.title} package gallery image ${currentGalleryIndex + 1}`}
+                className="h-72 w-full rounded-3xl object-cover"
+                loading="lazy"
+              />
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {gallery.map((image, index) => (
+                  <button
+                    key={image}
+                    type="button"
+                    onClick={() => setActiveGalleryIndex(index)}
+                    className={`overflow-hidden rounded-2xl border ${currentGalleryIndex === index ? 'border-cyan-500' : 'border-transparent'}`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${travelPackage.title} thumbnail ${index + 1}`}
+                      className="h-20 w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </article>
 
         <aside className="space-y-6 rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
@@ -654,6 +868,10 @@ function ContactPage() {
 
   return (
     <div className={`${shellClass} grid gap-6 lg:grid-cols-[0.95fr_1.05fr]`}>
+      <SeoMeta
+        title="Travel Inquiry | Fly With Ranjita"
+        description="Send your travel inquiry with package details and guest counts to Fly With Ranjita."
+      />
       <section className="space-y-6 rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Contact us</p>
@@ -698,6 +916,7 @@ function PackageCard({ travelPackage }) {
         src={travelPackage.image}
         alt={travelPackage.title}
         className="h-60 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        loading="lazy"
       />
       <div className="space-y-4 p-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
@@ -776,6 +995,8 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       name: String(formData.get('name') ?? '').trim(),
       email: String(formData.get('email') ?? '').trim(),
       phone: String(formData.get('phone') ?? '').trim(),
+      numberOfGuests: Number(formData.get('numberOfGuests') ?? 0),
+      numberOfChildren: Number(formData.get('numberOfChildren') ?? 0),
       message: String(formData.get('message') ?? '').trim(),
       travelPackage: travelPackageTitle,
       sourcePage,
@@ -802,6 +1023,7 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
         messageField.value = defaultMessage
       }
     } catch (error) {
+      console.error('Unable to submit inquiry', error)
       setSubmitError('We could not submit the form right now. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -820,6 +1042,10 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       <FormField id="name" label="Name" type="text" autoComplete="name" required />
       <FormField id="email" label="Email" type="email" autoComplete="email" required />
       <FormField id="phone" label="Phone" type="tel" autoComplete="tel" required />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField id="numberOfGuests" label="Number of Guests" type="number" min="1" defaultValue="1" required />
+        <FormField id="numberOfChildren" label="Number of Children" type="number" min="0" defaultValue="0" required />
+      </div>
       <FormField
         id="message"
         label="Message"

@@ -10,6 +10,7 @@ export default defineType({
     defineField({name: 'heroHeadline', title: 'Hero Headline', type: 'string'}),
     defineField({name: 'heroDescription', title: 'Hero Description', type: 'text', rows: 4}),
     defineField({name: 'heroImage', title: 'Hero Image', type: 'image', options: {hotspot: true}}),
+    defineField({name: 'heroVideo', title: 'Hero Video', type: 'file', options: {accept: 'video/*'}}),
     defineField({name: 'aboutDescription', title: 'About Description', type: 'text', rows: 4}),
     defineField({name: 'destinations', title: 'Destinations', type: 'array', of: [defineArrayMember({type: 'string'})]}),
     defineField({name: 'months', title: 'Months', type: 'array', of: [defineArrayMember({type: 'string'})]}),

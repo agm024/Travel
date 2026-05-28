@@ -43,11 +43,21 @@ export const handler = async (event) => {
     const name = String(body.name ?? '').trim()
     const email = String(body.email ?? '').trim()
     const phone = String(body.phone ?? '').trim()
+    const numberOfGuests = Number(body.numberOfGuests)
+    const numberOfChildren = Number(body.numberOfChildren)
     const message = String(body.message ?? '').trim()
     const travelPackage = String(body.travelPackage ?? '').trim()
     const sourcePage = String(body.sourcePage ?? '').trim()
 
-    if (!name || !email || !message) {
+    if (
+      !name ||
+      !email ||
+      !message ||
+      !Number.isFinite(numberOfGuests) ||
+      numberOfGuests < 1 ||
+      !Number.isFinite(numberOfChildren) ||
+      numberOfChildren < 0
+    ) {
       return json(400, {error: 'Missing required fields'})
     }
 
@@ -56,6 +66,8 @@ export const handler = async (event) => {
       name,
       email,
       phone,
+      numberOfGuests,
+      numberOfChildren,
       message,
       travelPackage,
       sourcePage,
