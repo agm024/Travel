@@ -270,6 +270,8 @@ function HomePage() {
             className="h-[27rem] w-full object-cover sm:h-[34rem] lg:h-[38rem]"
             src={siteContent.heroVideo}
             poster={siteContent.heroImage}
+            aria-label="Hero background video showing travel destinations"
+            title="Hero travel video"
             autoPlay
             muted
             loop
@@ -513,7 +515,7 @@ function PopularDestinationsCarousel({ destinations }) {
         <div className="grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
           <img
             src={destinations[activeIndex].image}
-            alt={destinations[activeIndex].country}
+            alt={`${destinations[activeIndex].title} in ${destinations[activeIndex].country}`}
             className="h-72 w-full object-cover md:h-full"
             loading="lazy"
           />
@@ -675,12 +677,8 @@ function PackageDetailsPage() {
   const travelPackage = siteContent.packages.find((item) => item.slug === slug)
   const [activeTab, setActiveTab] = useState('overview')
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
-  const gallery = travelPackage?.gallery?.length
-    ? travelPackage.gallery
-    : travelPackage?.image
-      ? [travelPackage.image]
-      : []
-  const safeGalleryIndex = gallery.length ? activeGalleryIndex % gallery.length : 0
+  const gallery = travelPackage?.gallery ?? []
+  const currentGalleryIndex = gallery.length ? activeGalleryIndex % gallery.length : 0
 
   if (!travelPackage) {
     return (
@@ -812,8 +810,8 @@ function PackageDetailsPage() {
                 </div>
               </div>
               <img
-                src={gallery[safeGalleryIndex]}
-                alt={`${travelPackage.title} gallery ${safeGalleryIndex + 1}`}
+                src={gallery[currentGalleryIndex]}
+                alt={`${travelPackage.title} package gallery image ${currentGalleryIndex + 1}`}
                 className="h-72 w-full rounded-3xl object-cover"
                 loading="lazy"
               />
@@ -823,7 +821,7 @@ function PackageDetailsPage() {
                     key={image}
                     type="button"
                     onClick={() => setActiveGalleryIndex(index)}
-                    className={`overflow-hidden rounded-2xl border ${safeGalleryIndex === index ? 'border-cyan-500' : 'border-transparent'}`}
+                    className={`overflow-hidden rounded-2xl border ${currentGalleryIndex === index ? 'border-cyan-500' : 'border-transparent'}`}
                   >
                     <img
                       src={image}

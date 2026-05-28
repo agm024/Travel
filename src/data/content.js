@@ -159,6 +159,10 @@ export const siteContent = {
       price: '₹1,89,999',
       image:
         'https://images.unsplash.com/photo-1505765050516-f72dcac9c60a?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1505765050516-f72dcac9c60a?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?auto=format&fit=crop&w=1200&q=80',
+      ],
       highlights: ['Scenic rail passes', 'Interlaken alpine adventures', 'Lake Lucerne cruise'],
       itinerary: [
         'Arrive in Zurich and settle into a city-center stay',
@@ -182,6 +186,10 @@ export const siteContent = {
       price: '₹98,999',
       image:
         'https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1200&q=80',
+      ],
       highlights: ['Beachfront resort stay', 'Island-hopping speedboat day', 'Sunset dinner cruise'],
       itinerary: [
         'Airport pickup and relaxed resort check-in',
