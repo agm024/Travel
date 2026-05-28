@@ -147,6 +147,22 @@ function SeoMeta({ title, description }) {
   return null
 }
 
+function SuccessToast({ message }) {
+  if (!message) {
+    return null
+  }
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed left-1/2 top-6 z-[60] w-[min(92vw,28rem)] -translate-x-1/2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-center text-sm font-semibold text-emerald-900 shadow-[0_18px_45px_rgba(15,23,42,0.12)]"
+    >
+      {message}
+    </div>
+  )
+}
+
 function LoadingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 text-slate-800">
@@ -1011,6 +1027,16 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    if (!successMessage) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => setSuccessMessage(''), 3000)
+    return () => window.clearTimeout(timer)
+  }, [successMessage])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -1044,6 +1070,7 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       }
 
       setSubmitted(true)
+      setSuccessMessage('Your inquiry was sent successfully.')
       form.reset()
 
       const messageField = form.elements.namedItem('message')
@@ -1108,6 +1135,7 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       ) : (
         <p className="text-sm text-slate-500">We usually respond within one business day.</p>
       )}
+      <SuccessToast message={successMessage} />
     </form>
   )
 }
@@ -1238,6 +1266,16 @@ function AddReviewPage() {
   const [quote, setQuote] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    if (!successMessage) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => setSuccessMessage(''), 3000)
+    return () => window.clearTimeout(timer)
+  }, [successMessage])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -1262,6 +1300,7 @@ function AddReviewPage() {
       }
 
       setSubmitted(true)
+      setSuccessMessage('Your review was sent successfully.')
       setName('')
       setTrip('')
       setRating(5)
@@ -1291,8 +1330,8 @@ function AddReviewPage() {
               <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-2xl border border-slate-200 px-4 py-3" />
             </label>
             <label className="grid gap-2 text-sm">
-              Trip (optional)
-              <input value={trip} onChange={(e) => setTrip(e.target.value)} className="rounded-2xl border border-slate-200 px-4 py-3" />
+              Trip
+              <input value={trip} onChange={(e) => setTrip(e.target.value)} required className="rounded-2xl border border-slate-200 px-4 py-3" />
             </label>
             <label className="grid gap-2 text-sm">
               Rating
@@ -1313,6 +1352,7 @@ function AddReviewPage() {
             </div>
           </form>
         )}
+        <SuccessToast message={successMessage} />
       </section>
     </div>
   )
