@@ -96,6 +96,9 @@ function AppShell() {
           <Route path="/packages" element={<PackagesPage />} />
           <Route path="/packages/:slug" element={<PackageDetailsPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+          <Route path="/add-review" element={<AddReviewPage />} />
         </Routes>
       </main>
       <Footer />
@@ -194,29 +197,29 @@ function Header() {
   const navClass = ({ isActive }) =>
     [
       'rounded-full px-4 py-2 text-sm font-medium transition',
-      isActive ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/10' : 'text-slate-600 hover:bg-white hover:text-slate-900',
+      isActive ? 'bg-white/15 text-white shadow-lg shadow-slate-950/20 ring-1 ring-white/20' : 'text-white/85 hover:bg-white/10 hover:text-white',
     ].join(' ')
 
   return (
-    <header className="sticky top-0 z-30">
+    <header className="sticky top-0 z-40">
       <div className={`${shellClass} pt-4`}>
-        <div className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-white/70 px-5 py-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 rounded-[2rem] border border-white/15 bg-slate-950/45 px-5 py-4 text-white shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur-2xl sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-400 to-fuchsia-400 text-lg font-semibold text-white shadow-lg shadow-cyan-200/70">
               TL
             </span>
             <span>
-              <span className="block text-lg font-semibold tracking-tight text-slate-900">
+              <span className="block text-lg font-semibold tracking-tight text-white">
                 {siteContent.brand}
               </span>
-              <span className="block text-sm text-slate-500">Bright escapes, curated smoothly.</span>
+              <span className="block text-sm text-white/70">Bright escapes, curated smoothly.</span>
             </span>
           </Link>
           <nav className="flex flex-wrap items-center gap-2">
             <NavLink to="/" end className={navClass}>
               Home
             </NavLink>
-            <Link to="/#about" className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900">
+            <Link to="/#about" className="rounded-full px-4 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white">
               About
             </Link>
             <NavLink to="/packages" className={navClass}>
@@ -225,7 +228,7 @@ function Header() {
             <NavLink to="/upcoming-tours" className={navClass}>
               Upcoming tours
             </NavLink>
-            <Link to="/#reviews" className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900">
+            <Link to="/#reviews" className="rounded-full px-4 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white">
               Reviews
             </Link>
             <NavLink to="/contact" className={navClass}>
@@ -264,10 +267,10 @@ function HomePage() {
         description="Discover upcoming tours, curated packages, and premium destination planning with Fly With Ranjita."
       />
 
-      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden border-y border-white/30 bg-slate-950">
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-32 w-screen overflow-hidden border-y border-white/30 bg-slate-950 sm:-mt-36 lg:-mt-40">
         {siteContent.heroVideo ? (
           <video
-            className="h-[27rem] w-full object-cover sm:h-[34rem] lg:h-[38rem]"
+            className="h-[36rem] w-full object-cover sm:h-[46rem] lg:h-[54rem]"
             src={siteContent.heroVideo}
             poster={siteContent.heroImage}
             aria-label="Hero background video showing travel destinations"
@@ -279,7 +282,7 @@ function HomePage() {
             preload="metadata"
           />
         ) : (
-          <img src={siteContent.heroImage} alt="Travel highlights" className="h-[27rem] w-full object-cover sm:h-[34rem] lg:h-[38rem]" loading="eager" fetchPriority="high" />
+          <img src={siteContent.heroImage} alt="Travel highlights" className="h-[36rem] w-full object-cover sm:h-[46rem] lg:h-[54rem]" loading="eager" fetchPriority="high" />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/55 to-slate-900/15" />
         <div className={`${shellClass} absolute inset-0 flex items-center`}>
@@ -292,13 +295,13 @@ function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/upcoming-tours"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg transition hover:-translate-y-0.5"
+                className="rounded-full border border-white/20 bg-slate-950/55 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20 backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-slate-950/70"
               >
                 Upcoming Tours
               </Link>
               <Link
                 to="/packages"
-                className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20"
+                className="rounded-full border border-white/35 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/15"
               >
                 Explore Packages
               </Link>
@@ -367,6 +370,23 @@ function HomePage() {
           </div>
           <p className="max-w-xl text-slate-700">{siteContent.about.description}</p>
         </div>
+        {siteContent.stats.length ? (
+          <div className="grid gap-4 md:grid-cols-3">
+            {siteContent.stats.map((stat) => (
+              <article
+                key={stat.label}
+                className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+              >
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+                  {stat.label}
+                </p>
+                <p className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
+                  {stat.value}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : null}
         <div className="grid gap-4 md:grid-cols-3">
           {siteContent.about.points.map((point) => (
             <article
@@ -407,11 +427,19 @@ function HomePage() {
       <section id="reviews" className="space-y-6">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">
-            Guest reviews
+            Fly With Ranjita Reviews
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-            Fake testimonials for the concept, styled like glowing word-of-mouth.
+            What are you waiting for? Let's Fly with Ranjita
           </h2>
+        </div>
+        <div>
+          <Link
+            to="/add-review"
+            className="inline-flex rounded-full bg-gradient-to-r from-fuchsia-500 via-pink-500 to-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(236,72,153,0.28)] transition hover:-translate-y-0.5 hover:from-fuchsia-400 hover:via-pink-400 hover:to-rose-400"
+          >
+            Add review
+          </Link>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           {siteContent.reviews.map((review) => (
@@ -437,7 +465,7 @@ function HomePage() {
               Smooth support
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-              Need a custom route, honeymoon plan, or premium group departure?
+              Need a custom route, or premium group departure?
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-300">
               We shape every journey around pace, preferences, and practical details so your trip
@@ -447,7 +475,7 @@ function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link
               to="/contact"
-              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5"
+              className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/15"
             >
               Start planning
             </Link>
@@ -530,7 +558,7 @@ function PopularDestinationsCarousel({ destinations }) {
             </p>
             <Link
               to={`/packages/${destinations[activeIndex].slug}`}
-              className="inline-flex rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+              className="inline-flex rounded-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(14,165,233,0.28)] transition hover:-translate-y-0.5 hover:from-cyan-400 hover:via-sky-400 hover:to-blue-400"
             >
               View destination
             </Link>
@@ -940,7 +968,7 @@ function PackageCard({ travelPackage }) {
           </div>
           <Link
             to={`/packages/${travelPackage.slug}`}
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+            className="rounded-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(14,165,233,0.28)] transition hover:-translate-y-0.5 hover:from-cyan-400 hover:via-sky-400 hover:to-blue-400"
           >
             View details
           </Link>
@@ -1139,7 +1167,7 @@ function Footer() {
       <div className={`${shellClass} flex flex-col gap-5 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
           <p className="font-semibold text-slate-900">{siteContent.brand}</p>
-          <p className="mt-1">Minimal, elegant travel planning with bright contemporary design.</p>
+          <p className="mt-1">Book amazing tours and exciting destinations with FlyWithRanjita.</p>
         </div>
         <div className="flex flex-wrap gap-4">
           <Link to="/" className="transition hover:text-slate-900">
@@ -1151,9 +1179,142 @@ function Footer() {
           <Link to="/contact" className="transition hover:text-slate-900">
             Contact
           </Link>
+          <Link to="/privacy-policy" className="transition hover:text-slate-900">
+            Privacy Policy
+          </Link>
+          <Link to="/terms-and-conditions" className="transition hover:text-slate-900">
+            Terms & Conditions
+          </Link>
         </div>
       </div>
     </footer>
+  )
+}
+
+function PrivacyPolicyPage() {
+  return (
+    <div className={`${shellClass} max-w-4xl space-y-8`}>
+      <SeoMeta
+        title="Privacy Policy | Fly With Ranjita"
+        description="Read the Fly With Ranjita privacy policy for how we handle inquiries and travel information."
+      />
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-800">Privacy Policy</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">How we use your information</h1>
+        <div className="mt-6 space-y-4 text-slate-700 leading-7">
+          <p>We use your details only to respond to inquiries, prepare travel quotes, and manage bookings.</p>
+          <p>We do not sell your personal information. Any travel details you share are handled for planning and support purposes only.</p>
+          <p>If you contact us through the site, we may store your submission so we can follow up on your request.</p>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function TermsAndConditionsPage() {
+  return (
+    <div className={`${shellClass} max-w-4xl space-y-8`}>
+      <SeoMeta
+        title="Terms & Conditions | Fly With Ranjita"
+        description="Review the Fly With Ranjita terms and conditions for site usage and travel inquiries."
+      />
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">Terms & Conditions</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">Site and booking terms</h1>
+        <div className="mt-6 space-y-4 text-slate-700 leading-7">
+          <p>All travel information on this site is provided for planning purposes and may change based on availability.</p>
+          <p>Final pricing, itinerary timing, and inclusions are confirmed only after we review your booking requirements.</p>
+          <p>Using this site means you agree to share accurate contact details when submitting inquiries or requests.</p>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function AddReviewPage() {
+  const [name, setName] = useState('')
+  const [trip, setTrip] = useState('')
+  const [rating, setRating] = useState(5)
+  const [quote, setQuote] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (!name.trim() || !quote.trim() || !Number.isFinite(Number(rating))) {
+      setError('Please complete name, rating and review text')
+      return
+    }
+    try {
+      const resp = await fetch('/.netlify/functions/review-submission', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, trip, rating, quote }),
+      })
+
+      const data = await resp.json()
+
+      if (!resp.ok) {
+        setError(data?.error || 'Submission failed')
+        return
+      }
+
+      setSubmitted(true)
+      setName('')
+      setTrip('')
+      setRating(5)
+      setQuote('')
+    } catch (err) {
+      console.error('submit review', err)
+      setError('Unable to submit review right now')
+    }
+  }
+
+  return (
+    <div className={`${shellClass} max-w-3xl`}>
+      <SeoMeta title="Add a Review | Fly With Ranjita" description="Share your experience with Fly With Ranjita." />
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <h1 className="text-2xl font-semibold text-slate-950">Add a review</h1>
+        <p className="mt-2 text-slate-700">Share a quick note about your trip so future guests can learn from your experience.</p>
+
+        {submitted ? (
+          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+            <p className="font-semibold">Thanks — your review is received</p>
+            <p className="mt-1 text-sm">We’ll review and publish your feedback shortly.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+            <label className="grid gap-2 text-sm">
+              Name
+              <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm">
+              Trip (optional)
+              <input value={trip} onChange={(e) => setTrip(e.target.value)} className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm">
+              Rating
+              <select value={rating} onChange={(e) => setRating(Number(e.target.value))} className="rounded-2xl border border-slate-200 px-4 py-3">
+                {[5,4,3,2,1].map((r) => (
+                  <option key={r} value={r}>{r} star{r>1?'s':''}</option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm">
+              Review
+              <textarea value={quote} onChange={(e) => setQuote(e.target.value)} rows={5} className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            <div className="flex gap-3">
+              <button type="submit" className="rounded-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 px-5 py-3 text-sm font-semibold text-white">Submit review</button>
+              <Link to="/" className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">Cancel</Link>
+            </div>
+          </form>
+        )}
+      </section>
+    </div>
   )
 }
 

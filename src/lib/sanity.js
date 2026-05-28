@@ -92,11 +92,11 @@ const mapStats = (stats) => {
 const mapAboutPoints = (points) => {
   const mapped = (points ?? [])
     .map((point) => ({
-      icon: point?.icon?.trim(),
+      icon: point?.icon?.trim() || '✦',
       title: point?.title?.trim(),
       description: point?.description?.trim(),
     }))
-    .filter((point) => point.icon && point.title && point.description)
+    .filter((point) => point.title && point.description)
 
   return mapped.length ? mapped : fallbackSiteContent.about.points
 }
