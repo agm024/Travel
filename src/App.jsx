@@ -793,7 +793,9 @@ function PackageDetailsPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setActiveGalleryIndex((activeGalleryIndex - 1 + gallery.length) % gallery.length)}
+                    onClick={() =>
+                      setActiveGalleryIndex((currentGalleryIndex - 1 + gallery.length) % gallery.length)
+                    }
                     className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700"
                     aria-label="Previous image"
                   >
@@ -801,7 +803,7 @@ function PackageDetailsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setActiveGalleryIndex((activeGalleryIndex + 1) % gallery.length)}
+                    onClick={() => setActiveGalleryIndex((currentGalleryIndex + 1) % gallery.length)}
                     className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700"
                     aria-label="Next image"
                   >
@@ -1020,7 +1022,8 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       if (messageField instanceof HTMLTextAreaElement) {
         messageField.value = defaultMessage
       }
-    } catch {
+    } catch (error) {
+      console.error('Unable to submit inquiry', error)
       setSubmitError('We could not submit the form right now. Please try again.')
     } finally {
       setIsSubmitting(false)
