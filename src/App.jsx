@@ -99,6 +99,7 @@ function AppShell() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/add-review" element={<AddReviewPage />} />
+          <Route path="/admin/reviews" element={<AdminReviewsPage />} />
         </Routes>
       </main>
       <Footer />
@@ -1354,6 +1355,126 @@ function AddReviewPage() {
         )}
         <SuccessToast message={successMessage} />
       </section>
+    </div>
+  )
+}
+
+function AdminReviewsPage() {
+  const siteContent = useSiteContent()
+  const [adminKey, setAdminKey] = useState('')
+  const [reviews, setReviews] = useState(() => siteContent.reviews)
+  const [deleteError, setDeleteError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [deletingId, setDeletingId] = useState('')
+  const adminKeyEntered = Boolean(adminKey.trim())
+
+  useEffect(() => {
+    if (!successMessage) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => setSuccessMessage(''), 3000)
+    return () => window.clearTimeout(timer)
+  }, [successMessage])
+
+  const handleDelete = async (review) => {
+    if (!adminKey.trim()) {
+      setDeleteError('Enter the admin key first.')
+      return
+    }
+
+    const confirmed = window.confirm(`Delete review from ${review.name} for ${review.trip}?`)
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingId(review.id)
+    setDeleteError('')
+
+    try {
+      const response = await fetch('/.netlify/functions/review-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Key': adminKey,
+        },
+        body: JSON.stringify({id: review.id}),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setDeleteError(data?.error || 'Unable to delete review')
+        return
+      }
+
+      setReviews((previous) => previous.filter((item) => item.id !== review.id))
+      setSuccessMessage(`Deleted review from ${review.name}.`)
+    } catch (error) {
+      console.error('delete review', error)
+      setDeleteError('Unable to delete review right now')
+    } finally {
+      setDeletingId('')
+    }
+  }
+
+  return (
+    <div className={`${shellClass} max-w-5xl space-y-8`}>
+      <SeoMeta title="Admin Reviews | Fly With Ranjita" description="Manage and delete submitted reviews." />
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">Admin reviews</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">Delete duplicate or unwanted reviews</h1>
+        <p className="mt-3 max-w-2xl text-slate-700">
+          Enter the admin key to unlock delete controls. The server validates the key before removing anything from Sanity.
+        </p>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <label className="grid gap-2 text-sm font-medium text-slate-600">
+            Admin key
+            <input
+              type="password"
+              value={adminKey}
+              onChange={(event) => setAdminKey(event.target.value)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-300 focus:ring-4 focus:ring-cyan-100"
+              placeholder="Enter REVIEW_ADMIN_KEY"
+            />
+          </label>
+          <div className="flex items-end">
+            <p className="text-sm text-slate-500">
+              {adminKeyEntered ? 'Delete controls are unlocked.' : 'Type the key to reveal delete controls.'}
+            </p>
+          </div>
+        </div>
+
+        {deleteError ? <p className="mt-4 text-sm text-rose-600">{deleteError}</p> : null}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        {reviews.map((review, index) => (
+          <article key={review.id || `${review.name}-${review.trip}-${index}`} className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">{review.trip}</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{review.name}</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">{review.quote}</p>
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-amber-600">{'★'.repeat(review.rating)}</p>
+              {adminKeyEntered ? (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(review)}
+                  disabled={deletingId === review.id || !review.id}
+                  className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {deletingId === review.id ? 'Deleting…' : 'Delete'}
+                </button>
+              ) : (
+                <span className="text-sm text-slate-500">Enter key to delete</span>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <SuccessToast message={successMessage} />
     </div>
   )
 }

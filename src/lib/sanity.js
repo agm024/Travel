@@ -51,6 +51,7 @@ const travelContentQuery = `{
     itinerary
   },
   "reviews": *[_type == "review"] | order(_createdAt desc){
+    _id,
     name,
     trip,
     rating,
@@ -138,12 +139,13 @@ const mapPackages = (packages) => {
 const mapReviews = (reviews) => {
   const mapped = (reviews ?? [])
     .map((review) => ({
+      id: review?._id?.trim(),
       name: review?.name?.trim(),
       trip: review?.trip?.trim(),
       rating: Number(review?.rating),
       quote: review?.quote?.trim(),
     }))
-    .filter((review) => review.name && review.trip && review.quote && Number.isFinite(review.rating))
+    .filter((review) => review.id && review.name && review.trip && review.quote && Number.isFinite(review.rating))
 
   return mapped.length ? mapped : fallbackSiteContent.reviews
 }
