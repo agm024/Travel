@@ -8,6 +8,7 @@ export default {
     { name: 'heroHeadline', title: 'Hero Headline', type: 'string' },
     { name: 'heroDescription', title: 'Hero Description', type: 'text', rows: 4 },
     { name: 'heroImage', title: 'Hero Image', type: 'image', options: { hotspot: true } },
+    { name: 'heroVideo', title: 'Hero Video', type: 'file', options: { accept: 'video/*' } },
     { name: 'aboutDescription', title: 'About Description', type: 'text', rows: 4 },
     { name: 'destinations', title: 'Destinations', type: 'array', of: [{ type: 'string' }] },
     { name: 'months', title: 'Months', type: 'array', of: [{ type: 'string' }] },

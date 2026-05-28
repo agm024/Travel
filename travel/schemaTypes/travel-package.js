@@ -18,6 +18,12 @@ export default defineType({
     defineField({name: 'price', title: 'Price', type: 'string'}),
     defineField({name: 'description', title: 'Description', type: 'text', rows: 4}),
     defineField({name: 'image', title: 'Image', type: 'image', options: {hotspot: true}}),
+    defineField({
+      name: 'gallery',
+      title: 'Gallery Images',
+      type: 'array',
+      of: [defineArrayMember({type: 'image', options: {hotspot: true}})],
+    }),
     defineField({name: 'highlights', title: 'Highlights', type: 'array', of: [defineArrayMember({type: 'string'})]}),
     defineField({name: 'itinerary', title: 'Itinerary', type: 'array', of: [defineArrayMember({type: 'string'})]}),
   ],

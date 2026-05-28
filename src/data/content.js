@@ -2,6 +2,8 @@ export const siteContent = {
   brand: 'Travel Luxe',
   heroImage:
     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
+  heroVideo:
+    'https://cdn.coverr.co/videos/coverr-an-aerial-view-of-the-sea-1579/1080p.mp4',
   destinations: ['Japan', 'Italy', 'Iceland', 'Switzerland', 'Thailand'],
   months: ['January', 'March', 'May', 'July', 'September', 'November'],
   stats: [
@@ -80,6 +82,11 @@ export const siteContent = {
       price: '₹1,24,999',
       image:
         'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&w=1200&q=80',
+      ],
       highlights: ['Cherry blossom city walks', 'Mt. Fuji day experience', 'Tea ceremony and local dining'],
       itinerary: [
         'Arrival, airport transfer, and evening stroll through Ginza',
@@ -101,6 +108,11 @@ export const siteContent = {
       price: '₹1,49,999',
       image:
         'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1498503403619-e39e4ff390fe?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=1200&q=80',
+      ],
       highlights: ['Positano boutique stay', 'Private coastal cruise', 'Chef-led culinary experience'],
       itinerary: [
         'Arrival in Naples and private transfer to the coast',
@@ -123,6 +135,10 @@ export const siteContent = {
       price: '₹1,79,999',
       image:
         'https://images.unsplash.com/photo-1476611338391-6f395a0ebc7b?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1476611338391-6f395a0ebc7b?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
+      ],
       highlights: ['Northern Lights chase', 'Blue Lagoon access', 'Glacier cave exploration'],
       itinerary: [
         'Arrival in Reykjavik and evening neighborhood walk',
