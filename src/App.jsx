@@ -249,14 +249,12 @@ function HomePage() {
     [siteContent.packages],
   )
 
-  useEffect(() => {
-    setDestination(siteContent.destinations[0] ?? '')
-    setMonth(siteContent.months[0] ?? '')
-  }, [siteContent.destinations, siteContent.months])
+  const destinationValue = destination || siteContent.destinations[0] || ''
+  const monthValue = month || siteContent.months[0] || ''
 
   const handleSearch = (event) => {
     event.preventDefault()
-    navigate(buildPackagesPath(destination, month))
+    navigate(buildPackagesPath(destinationValue, monthValue))
   }
 
   return (
@@ -333,14 +331,14 @@ function HomePage() {
           <SelectField
             id="destination"
             label="Destination"
-            value={destination}
+            value={destinationValue}
             options={siteContent.destinations}
             onChange={setDestination}
           />
           <SelectField
             id="month"
             label="Travel month"
-            value={month}
+            value={monthValue}
             options={siteContent.months}
             onChange={setMonth}
           />
@@ -677,6 +675,12 @@ function PackageDetailsPage() {
   const travelPackage = siteContent.packages.find((item) => item.slug === slug)
   const [activeTab, setActiveTab] = useState('overview')
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
+  const gallery = travelPackage?.gallery?.length
+    ? travelPackage.gallery
+    : travelPackage?.image
+      ? [travelPackage.image]
+      : []
+  const safeGalleryIndex = gallery.length ? activeGalleryIndex % gallery.length : 0
 
   if (!travelPackage) {
     return (
@@ -694,22 +698,6 @@ function PackageDetailsPage() {
       </div>
     )
   }
-
-  const gallery = travelPackage.gallery?.length
-    ? travelPackage.gallery
-    : travelPackage.image
-      ? [travelPackage.image]
-      : []
-
-  useEffect(() => {
-    if (!gallery.length) {
-      return
-    }
-
-    if (activeGalleryIndex >= gallery.length) {
-      setActiveGalleryIndex(0)
-    }
-  }, [activeGalleryIndex, gallery, gallery.length])
 
   return (
     <div className={`${shellClass} space-y-8`}>
@@ -824,8 +812,8 @@ function PackageDetailsPage() {
                 </div>
               </div>
               <img
-                src={gallery[activeGalleryIndex]}
-                alt={`${travelPackage.title} gallery ${activeGalleryIndex + 1}`}
+                src={gallery[safeGalleryIndex]}
+                alt={`${travelPackage.title} gallery ${safeGalleryIndex + 1}`}
                 className="h-72 w-full rounded-3xl object-cover"
                 loading="lazy"
               />
@@ -835,7 +823,7 @@ function PackageDetailsPage() {
                     key={image}
                     type="button"
                     onClick={() => setActiveGalleryIndex(index)}
-                    className={`overflow-hidden rounded-2xl border ${activeGalleryIndex === index ? 'border-cyan-500' : 'border-transparent'}`}
+                    className={`overflow-hidden rounded-2xl border ${safeGalleryIndex === index ? 'border-cyan-500' : 'border-transparent'}`}
                   >
                     <img
                       src={image}
@@ -1034,7 +1022,7 @@ function InquiryForm({ buttonText, defaultMessage = '', travelPackageTitle = '',
       if (messageField instanceof HTMLTextAreaElement) {
         messageField.value = defaultMessage
       }
-    } catch (error) {
+    } catch {
       setSubmitError('We could not submit the form right now. Please try again.')
     } finally {
       setIsSubmitting(false)
